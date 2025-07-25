@@ -5,6 +5,8 @@ local Workspace = game:GetService("Workspace")
 local UserInputService = game:GetService("UserInputService")
 
 local LocalPlayer = Players.LocalPlayer
+
+-- Если LocalPlayer еще не существует, ждем, пока игрок присоединится
 if not LocalPlayer then
     Players.PlayerAdded:Wait()
     LocalPlayer = Players.LocalPlayer
@@ -45,12 +47,17 @@ local function EquipTool()
     end
 end
 
-LocalPlayer.CharacterAdded:Connect(function(character)
-    task.wait(2)
-    if isEquipRunning then
-        EquipTool()
-    end
-end)
+-- Подключение события CharacterAdded только если LocalPlayer существует
+if LocalPlayer then
+    LocalPlayer.CharacterAdded:Connect(function(character)
+        task.wait(2)
+        if isEquipRunning then
+            EquipTool()
+        end
+    end)
+else
+    warn("LocalPlayer не найден при подключении CharacterAdded.")
+end
 
 RunService.Heartbeat:Connect(function()
     if isEquipRunning then
@@ -146,11 +153,15 @@ local function CheckIfSeated()
 end
 
 -- Обработчик смерти персонажа
-LocalPlayer.CharacterAdded:Connect(function(character)
-    task.wait(1) -- Небольшая задержка для загрузки персонажа
-    isSeated = false
-    print("🔄 [Auto-Seat] Персонаж возрожден, возобновление телепортации...")
-end)
+if LocalPlayer then
+    LocalPlayer.CharacterAdded:Connect(function(character)
+        task.wait(1) -- Небольшая задержка для загрузки персонажа
+        isSeated = false
+        print("🔄 [Auto-Seat] Персонаж возрожден, возобновление телепортации...")
+    end)
+else
+    warn("LocalPlayer не найден при подключении CharacterAdded.")
+end
 
 -- Основной цикл для сидения
 RunService.Heartbeat:Connect(function()
